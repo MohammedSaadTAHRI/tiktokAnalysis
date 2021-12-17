@@ -1,4 +1,6 @@
-def process_results(data):
+def process_results(data : dict) -> dict :
+    """This functions parses a json to a dict usable by pandas. 
+    It's main aim is to deal with nested values for better csv files."""
     nested_values = set(
         [
             "video",
@@ -69,4 +71,3 @@ def process_results(data):
                 else:
                     flattened_data[idx][prop_idx] = prop_value
     return flattened_data
-

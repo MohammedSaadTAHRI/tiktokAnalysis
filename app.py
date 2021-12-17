@@ -27,14 +27,25 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
+#Search form
 st.header("Analytics Dashboard")
 with st.form("hashtag_search"):
     hashtag = st.text_input("Search for a hashtag here", value="")
     submitted = st.form_submit_button("Get Data")
     if submitted:
-        data_status = subprocess.run([sys.executable, str(Path("tiktokanalysis/tiktok.py")), f"'{hashtag}'"])
+        data_status = subprocess.run(
+            [
+                sys.executable,
+                str(Path("tiktokanalysis/tiktok.py")),
+                f"'{hashtag}'",
+                str(DATA_PATH),
+            ]
+        )
         if data_status.returncode:
-            raise Exception("Could not get the data from the API, Please try again.")
+            st.warning(
+                "Could not get the data from the API, please try again, or search for a different word."
+            )
+            st.stop()
         df = pd.read_csv(DATA_PATH)
         fig = px.histogram(
             df, x="desc", hover_data=["desc"], y="stats_diggCount", height=300
@@ -43,7 +54,7 @@ with st.form("hashtag_search"):
 
         left_col, right_col = st.columns(2)
 
-        scatter1 = px.scatter(
+        scatter_left = px.scatter(
             df,
             x="stats_shareCount",
             y="stats_commentCount",
@@ -51,9 +62,9 @@ with st.form("hashtag_search"):
             size="stats_playCount",
             color="stats_playCount",
         )
-        left_col.plotly_chart(scatter1, use_container_width=True)
+        left_col.plotly_chart(scatter_left, use_container_width=True)
 
-        scatter2 = px.scatter(
+        scatter_right = px.scatter(
             df,
             x="authorStats_videoCount",
             y="authorStats_heartCount",
@@ -61,7 +72,7 @@ with st.form("hashtag_search"):
             size="authorStats_followerCount",
             color="authorStats_followerCount",
         )
-        right_col.plotly_chart(scatter2, use_container_width=True)
+        right_col.plotly_chart(scatter_right, use_container_width=True)
 
         # Show tabular dataframe in streamlit
         st.dataframe(df)
