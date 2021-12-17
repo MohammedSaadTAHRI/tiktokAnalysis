@@ -1,12 +1,14 @@
 """Tiktok analysis, By Mohammed Saad TAHRI
 An app to visualze tiktok data."""
 from pathlib import Path
+import subprocess
+import sys
 
 import streamlit as st  # Import base streamlit dependency
 import pandas as pd  # Import pandas to load the analytics data
 import plotly.express as px  # Import plotly for viz
 
-from tiktokanalysis.tiktok import get_data
+import tiktokanalysis
 
 DATA_PATH = Path("tiktokanalysis/data/tiktokdata.csv")
 
@@ -25,44 +27,41 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-hashtag = st.text_input("Search for a hashtag here", value="")
+st.header("Analytics Dashboard")
+with st.form("hashtag_search"):
+    hashtag = st.text_input("Search for a hashtag here", value="")
+    submitted = st.form_submit_button("Get Data")
+    if submitted:
+        data_status = subprocess.run([sys.executable, str(Path("tiktokanalysis/tiktok.py")), f"'{hashtag}'"])
+        if data_status.returncode:
+            raise Exception("Could not get the data from the API, Please try again.")
+        df = pd.read_csv(DATA_PATH)
+        fig = px.histogram(
+            df, x="desc", hover_data=["desc"], y="stats_diggCount", height=300
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-if st.button("Get Data"):
-    try:
-        get_data(str(hashtag), DATA_PATH)
-    except Exception:
-        st.warning("An error occured while trying to get the data, please try again.")
-        st.stop()
-        st.experimental_rerun()
+        left_col, right_col = st.columns(2)
 
-    df = pd.read_csv(DATA_PATH)
+        scatter1 = px.scatter(
+            df,
+            x="stats_shareCount",
+            y="stats_commentCount",
+            hover_data=["desc"],
+            size="stats_playCount",
+            color="stats_playCount",
+        )
+        left_col.plotly_chart(scatter1, use_container_width=True)
 
-    fig = px.histogram(
-        df, x="desc", hover_data=["desc"], y="stats_diggCount", height=300
-    )
-    st.plotly_chart(fig, use_container_width=True)
+        scatter2 = px.scatter(
+            df,
+            x="authorStats_videoCount",
+            y="authorStats_heartCount",
+            hover_data=["author_nickname"],
+            size="authorStats_followerCount",
+            color="authorStats_followerCount",
+        )
+        right_col.plotly_chart(scatter2, use_container_width=True)
 
-    left_col, right_col = st.columns(2)
-
-    scatter1 = px.scatter(
-        df,
-        x="stats_shareCount",
-        y="stats_commentCount",
-        hover_data=["desc"],
-        size="stats_playCount",
-        color="stats_playCount",
-    )
-    left_col.plotly_chart(scatter1, use_container_width=True)
-
-    scatter2 = px.scatter(
-        df,
-        x="authorStats_videoCount",
-        y="authorStats_heartCount",
-        hover_data=["author_nickname"],
-        size="authorStats_followerCount",
-        color="authorStats_followerCount",
-    )
-    right_col.plotly_chart(scatter2, use_container_width=True)
-
-    # Show tabular dataframe in streamlit
-    st.dataframe(df)
+        # Show tabular dataframe in streamlit
+        st.dataframe(df)

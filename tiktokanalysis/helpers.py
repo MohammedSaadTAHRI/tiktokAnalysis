@@ -69,3 +69,4 @@ def process_results(data):
                 else:
                     flattened_data[idx][prop_idx] = prop_value
     return flattened_data
+
