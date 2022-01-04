@@ -6,7 +6,7 @@
 TiktokAnalysis is prototype to visualize tiktok data using streamlit.
 
 ### SnapShot
-![A snapshot of the web application](https://github.com/MohammedSaadTAHRI/CoronaTrackingDashBoard/blob/main/data/snapshot.PNG)
+![A snapshot of the web application](https://github.com/MohammedSaadTAHRI/tiktokAnalysis/blob/main/tiktokanalysis/data/snapshot.PNG)
 
 ## Features
 
